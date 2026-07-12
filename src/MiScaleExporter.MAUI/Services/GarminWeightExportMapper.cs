@@ -9,7 +9,7 @@ public static class GarminWeightExportMapper
     {
         ArgumentNullException.ThrowIfNull(bodyComposition);
 
-        var muscleMass = bodyComposition.SkeletalMuscleMass ?? bodyComposition.MuscleMass;
+        var skeletalMuscleMass = bodyComposition.SkeletalMuscleMass ?? bodyComposition.MuscleMass;
 
         return new GarminWeightExportData
         {
@@ -18,7 +18,7 @@ public static class GarminWeightExportMapper
             PercentFat = Convert.ToSingle(bodyComposition.Fat),
             PercentHydration = Convert.ToSingle(bodyComposition.WaterPercentage),
             BoneMass = Convert.ToSingle(bodyComposition.BoneMass),
-            MuscleMass = Convert.ToSingle(muscleMass),
+            SkeletalMuscleMass = Convert.ToSingle(skeletalMuscleMass),
             VisceralFatRating = Convert.ToByte(bodyComposition.VisceralFat),
             VisceralFatMass = Convert.ToSingle(bodyComposition.VisceralFat),
             PhysiqueRating = Convert.ToByte(bodyComposition.BodyType),
@@ -41,7 +41,7 @@ public static class GarminWeightExportMapper
             PercentFat = data.PercentFat,
             PercentHydration = data.PercentHydration,
             BoneMass = data.BoneMass,
-            MuscleMass = data.MuscleMass,
+            SkeletalMuscleMass = data.SkeletalMuscleMass,
             VisceralFatRating = data.VisceralFatRating,
             VisceralFatMass = data.VisceralFatMass,
             PhysiqueRating = data.PhysiqueRating,
@@ -67,7 +67,8 @@ public static class GarminWeightExportMapper
             TokenSecret = credentials.TokenSecret,
             Weight = data.Weight,
             BoneMass = data.BoneMass,
-            MuscleMass = data.MuscleMass,
+            SkeletalMuscleMass = data.SkeletalMuscleMass,
+            MuscleMass = data.SkeletalMuscleMass,
             MetabolicAge = data.MetabolicAge,
             PercentFat = data.PercentFat,
             VisceralFatRating = data.VisceralFatRating,

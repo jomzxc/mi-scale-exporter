@@ -27,11 +27,12 @@ public class GarminWeightExportMapperTests
             Password = "password",
         });
 
-        Assert.That(export.MuscleMass, Is.EqualTo(40.0f));
+        Assert.That(export.SkeletalMuscleMass, Is.EqualTo(40.0f));
         Assert.That(export.BasalMet, Is.EqualTo(1702f));
-        Assert.That(direct.MuscleMass, Is.EqualTo(export.MuscleMass));
+        Assert.That(direct.SkeletalMuscleMass, Is.EqualTo(export.SkeletalMuscleMass));
         Assert.That(direct.BasalMet, Is.EqualTo(1702f));
-        Assert.That(proxy.MuscleMass, Is.EqualTo(export.MuscleMass));
+        Assert.That(proxy.SkeletalMuscleMass, Is.EqualTo(export.SkeletalMuscleMass));
+        Assert.That(proxy.MuscleMass, Is.EqualTo(export.SkeletalMuscleMass));
         Assert.That(proxy.BasalMet, Is.EqualTo(export.BasalMet));
         Assert.That(proxy.TimeStamp, Is.EqualTo(new DateTimeOffset(MeasurementTime).ToUnixTimeSeconds()));
     }
@@ -45,7 +46,7 @@ public class GarminWeightExportMapperTests
 
         var export = GarminWeightExportMapper.Map(bodyComposition, MeasurementTime);
 
-        Assert.That(export.MuscleMass, Is.EqualTo(58.6f).Within(0.001f));
+        Assert.That(export.SkeletalMuscleMass, Is.EqualTo(58.6f).Within(0.001f));
     }
 
     [TestCase(0)]

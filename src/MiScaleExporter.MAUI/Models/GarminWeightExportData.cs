@@ -10,7 +10,7 @@ public sealed record GarminWeightExportData
     public float PercentFat { get; init; }
     public float PercentHydration { get; init; }
     public float BoneMass { get; init; }
-    public float MuscleMass { get; init; }
+    public float SkeletalMuscleMass { get; init; }
     public byte VisceralFatRating { get; init; }
     public float VisceralFatMass { get; init; }
     public byte PhysiqueRating { get; init; }

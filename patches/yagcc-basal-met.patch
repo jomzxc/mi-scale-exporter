@@ -1,0 +1,106 @@
+diff --git a/src/Api/Contracts/BodyCompositionRequest.cs b/src/Api/Contracts/BodyCompositionRequest.cs
+--- a/src/Api/Contracts/BodyCompositionRequest.cs
++++ b/src/Api/Contracts/BodyCompositionRequest.cs
+@@ -15,4 +15,5 @@ namespace Api.Contracts
+         public float? PhysiqueRating { set; get; }
+         public float? MetabolicAge { set; get; }
+         public float? bodyMassIndex { get; set; }
++        public float? BasalMet { get; set; }
+         public bool CreateOnlyFile { get; set; } = false;
+diff --git a/src/Api/Endpoints/UploadEndpoints.cs b/src/Api/Endpoints/UploadEndpoints.cs
+--- a/src/Api/Endpoints/UploadEndpoints.cs
++++ b/src/Api/Endpoints/UploadEndpoints.cs
+@@ -62,3 +62,4 @@ public static class UploadEndpoints
+                     MetabolicAge = request.MetabolicAge.HasValue ? (byte)Math.Round(request.MetabolicAge.Value) : null,
+                     BodyMassIndex = request.bodyMassIndex,
++                    BasalMet = request.BasalMet,
+                 };
+diff --git a/src/YetAnotherGarminConnectClient/Dto/Garmin/Fit/Models.cs b/src/YetAnotherGarminConnectClient/Dto/Garmin/Fit/Models.cs
+--- a/src/YetAnotherGarminConnectClient/Dto/Garmin/Fit/Models.cs
++++ b/src/YetAnotherGarminConnectClient/Dto/Garmin/Fit/Models.cs
+@@ -35,4 +35,5 @@ namespace YetAnotherGarminConnectClient.Dto.Garmin.Fit
+         public byte? PhysiqueRating { set; get; }
+         public byte? MetabolicAge { set; get; }
+         public float? BodyMassIndex { set; get; }
++        public float? BasalMet { set; get; }
+     }
+diff --git a/src/YetAnotherGarminConnectClient/FitFileCreator.cs b/src/YetAnotherGarminConnectClient/FitFileCreator.cs
+--- a/src/YetAnotherGarminConnectClient/FitFileCreator.cs
++++ b/src/YetAnotherGarminConnectClient/FitFileCreator.cs
+@@ -54,4 +54,6 @@ namespace YetAnotherGarminConnectClient
+                     weightMesg.SetPercentHydration(garminWeightScaleData.PercentHydration);
+                 if (garminWeightScaleData.MuscleMass is not null)
+                     weightMesg.SetMuscleMass(garminWeightScaleData.MuscleMass);
++                if (garminWeightScaleData.BasalMet is not null)
++                    weightMesg.SetBasalMet(garminWeightScaleData.BasalMet);
+                 if (garminWeightScaleData.BoneMass is not null)
+diff --git a/tests/Api/Helpers/BodyCompositionRequestBuilder.cs b/tests/Api/Helpers/BodyCompositionRequestBuilder.cs
+--- a/tests/Api/Helpers/BodyCompositionRequestBuilder.cs
++++ b/tests/Api/Helpers/BodyCompositionRequestBuilder.cs
+@@ -41,3 +41,4 @@ namespace Api.Tests.Helpers
+                 MetabolicAge = 35,
+                 bodyMassIndex = 24.5f,
++                BasalMet = 1650f,
+                 TimeStamp = null,
+diff --git a/tests/FitFileCreatorTests.cs b/tests/FitFileCreatorTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/FitFileCreatorTests.cs
+@@ -0,0 +1,57 @@
++using Dynastream.Fit;
++using NUnit.Framework;
++using YetAnotherGarminConnectClient.Dto.Garmin.Fit;
++
++namespace YetAnotherGarminConnectClient.Tests;
++
++[TestFixture]
++public class FitFileCreatorTests
++{
++    [Test]
++    public void WeightFitFileRoundTripsBasalMetAndMuscleMass()
++    {
++        var data = new GarminWeightScaleData
++        {
++            TimeStamp = new System.DateTime(2026, 7, 12, 8, 30, 0, DateTimeKind.Utc),
++            Weight = 74.2f,
++            MuscleMass = 40.0f,
++            BasalMet = 1650f,
++        };
++        var profile = new UserProfileSettings { Age = 29, Height = 182 };
++        var bytes = FitFileCreator.CreateWeightBodyCompositionFitFile(data, profile);
++        var decode = new Decode();
++        var broadcaster = new MesgBroadcaster();
++        WeightScaleMesg? decoded = null;
++        decode.MesgEvent += broadcaster.OnMesg;
++        broadcaster.WeightScaleMesgEvent += (_, args) => decoded = new WeightScaleMesg(args.mesg);
++        using var stream = new MemoryStream(bytes);
++
++        Assert.That(decode.Read(stream), Is.True);
++        Assert.That(decoded, Is.Not.Null);
++        Assert.That(decoded!.GetBasalMet(), Is.EqualTo(1650f).Within(0.25f));
++        Assert.That(decoded.GetMuscleMass(), Is.EqualTo(40.0f).Within(0.01f));
++    }
++
++    [Test]
++    public void WeightFitFileOmitsBasalMetWhenItIsNull()
++    {
++        var data = new GarminWeightScaleData
++        {
++            TimeStamp = new System.DateTime(2026, 7, 12, 8, 30, 0, DateTimeKind.Utc),
++            Weight = 74.2f,
++            BasalMet = null,
++        };
++        var profile = new UserProfileSettings { Age = 29, Height = 182 };
++        var bytes = FitFileCreator.CreateWeightBodyCompositionFitFile(data, profile);
++        var decode = new Decode();
++        var broadcaster = new MesgBroadcaster();
++        WeightScaleMesg? decoded = null;
++        decode.MesgEvent += broadcaster.OnMesg;
++        broadcaster.WeightScaleMesgEvent += (_, args) => decoded = new WeightScaleMesg(args.mesg);
++        using var stream = new MemoryStream(bytes);
++
++        Assert.That(decode.Read(stream), Is.True);
++        Assert.That(decoded, Is.Not.Null);
++        Assert.That(decoded!.GetBasalMet(), Is.Null);
++    }
++}

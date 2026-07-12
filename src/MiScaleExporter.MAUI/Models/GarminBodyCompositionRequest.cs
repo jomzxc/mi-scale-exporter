@@ -12,6 +12,7 @@ public record GarminBodyCompositionRequest
     public int PhysiqueRating { get; set; }
     public double MetabolicAge { get; set; }
     public double BodyMassIndex { get; set; }
+    public double? BasalMet { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
     public string ClientID { get; set; }
